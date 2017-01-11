@@ -1,0 +1,22 @@
+---
+title: "GroupProject"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+GroupProjectData <- read.csv("data/Boats.csv", sep=";")
+```
+
+## Introduction
+
+Bla bla bla
+
+## Data
+
+You can also embed plots, for example:
+
+```{r echo=FALSE}
+hist(GroupProjectData[,2], main = paste("Histogram of Boats"), col="Green")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
