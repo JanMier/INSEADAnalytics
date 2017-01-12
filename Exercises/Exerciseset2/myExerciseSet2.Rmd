@@ -2,8 +2,8 @@
 title: 'Exercise Set 2: A $300 Billion Strategy'
 author: "T. Evgeniou"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 <br>
@@ -65,6 +65,7 @@ load("data/FuturesTrendFollowingData.Rdata")
 ```
 
 <br>
+<!-- Where is futures_data defined?-->
 We have data from `r head(rownames(futures_data),1)` to `r tail(rownames(futures_data),1)` of daily returns for the following `r ncol(futures_data)` futures: 
 
 <br>
@@ -165,6 +166,114 @@ print(m1,'chart')
 <br>
 
 **Your Answers here:**
+
+1. The first 6
+2. 0.93
+3. I would call them
+ + Component 1: Government bonds
+ + Component 2: Currencies
+ + Component 3: European stock indexes
+ + Component 4: North American stock indexes
+ + Component 5: European f/x futures and securities
+ + Component 6: Oil
+ + Component 7: Cu, Zn, Al, Ni
+ + Component 8: Soy, Corn and Wheat trifecta
+ + Component 9: Precious metals
+ + Component 10: East Asian stock indexes
+4. Let's have a go..
+```{r echo=FALSE, comment=NA, warning=FALSE, error=FALSE,message=FALSE, results='asis'}
+rotation_used="varimax"
+MIN_VALUE=0.5
+```
+ + pre-crisis bull market years (November 1, 2002, and October 1, 2007)
+```{r pre-crisis, echo=FALSE, comment=NA, results='asis', message=FALSE, fig.align='center', fig=TRUE}
+
+factors_selected = 8
+
+crisis_data = futures_data[as.Date(rownames(futures_data)) > "2002-11-01" & as.Date(rownames(futures_data)) < "2007-10-01", ]
+
+
+Variance_Explained_Table_crisis_data_results<-PCA(crisis_data, graph=FALSE)
+Variance_Explained_Table_crisis_data<-cbind(paste("component",1:ncol(crisis_data),sep=" "),Variance_Explained_Table_crisis_data_results$eig)
+Variance_Explained_Table_crisis_data<-as.data.frame(Variance_Explained_Table_crisis_data)
+colnames(Variance_Explained_Table_crisis_data)<-c("Component","Eigenvalue", "Percentage_of_explained_variance", "Cumulative_percentage_of_explained_variance")
+
+show_data = data.frame(Variance_Explained_Table_crisis_data)
+m1<-gvisTable(show_data,options=list(width=1920, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'),formats=list(Eigenvalue="#.##",Percentage_of_explained_variance="#.##",Cumulative_percentage_of_explained_variance="#.##"))
+print(m1,'chart')
+
+eigenvalues_crisis_data  <- Variance_Explained_Table_crisis_data[,2]
+
+# scree plot
+df           <- cbind(as.data.frame(eigenvalues_crisis_data), c(1:length(eigenvalues_crisis_data)), rep(1, length(eigenvalues_crisis_data)))
+colnames(df) <- c("eigenvalues", "components", "abline")
+Line         <- gvisLineChart(as.data.frame(df), xvar="components", yvar=c("eigenvalues","abline"), options=list(title='Scree plot', legend="right", width=900, height=600, hAxis="{title:'Number of Components', titleTextStyle:{color:'black'}}", vAxes="[{title:'Eigenvalues'}]",  series="[{color:'green',pointSize:3, targetAxisIndex: 0}]"))
+print(Line, 'chart')
+
+
+# principal components
+Rotated_Results<-principal(futures_data, nfactors=max(factors_selected), rotate=rotation_used,score=TRUE)
+Rotated_Factors<-round(Rotated_Results$loadings,2)
+Rotated_Factors<-as.data.frame(unclass(Rotated_Factors))
+colnames(Rotated_Factors)<-paste("Component",1:ncol(Rotated_Factors),sep=" ")
+
+sorted_rows <- sort(Rotated_Factors[,1], decreasing = TRUE, index.return = TRUE)$ix
+Rotated_Factors <- Rotated_Factors[sorted_rows,]
+
+show_data <- Rotated_Factors
+show_data[abs(show_data) < MIN_VALUE] <-NA
+show_data<-cbind(rownames(show_data),show_data)
+colnames(show_data)<-c("Variables",colnames(Rotated_Factors))
+m1<-gvisTable(show_data,options=list(showRowNumber=TRUE,width=1220, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'))
+print(m1,'chart')
+```
+ + financial crisis years (October 1, 2007 and March 1, 2009)
+```{r crisis, echo=FALSE, comment=NA, results='asis', message=FALSE, fig.align='center', fig=TRUE}
+
+factors_selected = 4
+
+crisis_data = futures_data[as.Date(rownames(futures_data)) > "2007-10-01" & as.Date(rownames(futures_data)) < "2009-03-01", ]
+
+
+Variance_Explained_Table_crisis_data_results<-PCA(crisis_data, graph=FALSE)
+Variance_Explained_Table_crisis_data<-cbind(paste("component",1:ncol(crisis_data),sep=" "),Variance_Explained_Table_crisis_data_results$eig)
+Variance_Explained_Table_crisis_data<-as.data.frame(Variance_Explained_Table_crisis_data)
+colnames(Variance_Explained_Table_crisis_data)<-c("Component","Eigenvalue", "Percentage_of_explained_variance", "Cumulative_percentage_of_explained_variance")
+
+show_data = data.frame(Variance_Explained_Table_crisis_data)
+m1<-gvisTable(show_data,options=list(width=1920, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'),formats=list(Eigenvalue="#.##",Percentage_of_explained_variance="#.##",Cumulative_percentage_of_explained_variance="#.##"))
+print(m1,'chart')
+
+eigenvalues_crisis_data  <- Variance_Explained_Table_crisis_data[,2]
+
+# scree plot
+df           <- cbind(as.data.frame(eigenvalues_crisis_data), c(1:length(eigenvalues_crisis_data)), rep(1, length(eigenvalues_crisis_data)))
+colnames(df) <- c("eigenvalues", "components", "abline")
+Line         <- gvisLineChart(as.data.frame(df), xvar="components", yvar=c("eigenvalues","abline"), options=list(title='Scree plot', legend="right", width=900, height=600, hAxis="{title:'Number of Components', titleTextStyle:{color:'black'}}", vAxes="[{title:'Eigenvalues'}]",  series="[{color:'green',pointSize:3, targetAxisIndex: 0}]"))
+print(Line, 'chart')
+
+
+# principal components
+Rotated_Results<-principal(futures_data, nfactors=max(factors_selected), rotate=rotation_used,score=TRUE)
+Rotated_Factors<-round(Rotated_Results$loadings,2)
+Rotated_Factors<-as.data.frame(unclass(Rotated_Factors))
+colnames(Rotated_Factors)<-paste("Component",1:ncol(Rotated_Factors),sep=" ")
+
+sorted_rows <- sort(Rotated_Factors[,1], decreasing = TRUE, index.return = TRUE)$ix
+Rotated_Factors <- Rotated_Factors[sorted_rows,]
+
+show_data <- Rotated_Factors
+show_data[abs(show_data) < MIN_VALUE] <-NA
+show_data<-cbind(rownames(show_data),show_data)
+colnames(show_data)<-c("Variables",colnames(Rotated_Factors))
+m1<-gvisTable(show_data,options=list(showRowNumber=TRUE,width=1220, height=min(400,27*(nrow(show_data)+1)),allowHTML=TRUE,page='disable'))
+print(m1,'chart')
+```
+5. In the bull market there are 8 principal components and the in the bear market only 4 (however with more variables). Aassets become much more correlated during the crisis.
++ Both have the same stock indexes
++ Currencies and metals are separate components pre-crisis and are grouped together during the crisis
++ European and North American bonds were separate components pre-crisis and are grouped together during the crisis
++ Soy, Wheat, Corn and Oil are 2 components pre-crisis and one component during the crisis
 <br>
 <br>
 <br>
@@ -190,14 +299,14 @@ Here is the code.
 ```{r echo=TRUE, eval=TRUE, comment=NA, warning=FALSE,error=FALSE, message=FALSE, prompt=FALSE, tidy=TRUE}
 signal_used = 0*futures_data # just initialize the trading signal to be 0
 # Take many moving Average (MA) Signals and let them "vote" with their sign (+-1, e.g. long or short vote, for each signal)
-MAfreq<-seq(10,250,by=20)
+MAfreq<-seq(10,250,by=10)
 for (iter in 1:length(MAfreq))
   signal_used = signal_used + sign(apply(futures_data,2, function(r) ma(r,MAfreq[iter])))
 # Now make sure we invest $1 every day (so the sum of the absolute values of the weights is 1 every day)
 signal_used = t(apply(signal_used,1,function(r) {
   res = r  
   if ( sum(abs(r)) !=0 )
-    res = r/sum(abs(r))
+    res = 2*r/sum(abs(r))
   res
 }))
 colnames(signal_used) <- colnames(futures_data)
@@ -249,6 +358,10 @@ How does this compare with **existing CTA products** such as [this one from Soci
 <br>
 
 **Your Answers here:**
+1. Not any better than what is in the comments
+2. I get different returns e.g.
++ I can increase the investment amount to get higher returns and higher volatility
++ I can change the MAfreq sequence increment, which increases the returns
 <br>
 <br>
 <br>
